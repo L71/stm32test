@@ -23,10 +23,6 @@ void spi1_dac_finalize(void) {
 	while(SPI1->SR & SPI_SR_BSY) { // wait for BSY to clear
 		;
 	}
-	asm("nop");
-		asm("nop");
-			asm("nop");
-				asm("nop");
 	GPIOA->BSRR = 0x0010 ;	// SPI SS -> H
 }
 

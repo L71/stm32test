@@ -218,6 +218,7 @@ void midi_process_buffer(void) {
 				spi1_dac_write_cha(key_vel*16);
 				spi1_dac_finalize();
 				spi1_dac_write_chb((127-key_vel)*16);
+				spi1_dac_finalize();
 				// spi_dac_write_chb(key_vel*16);
 				// midi_set_ctrl(key_no,key_vel);	// not really key_no etc, but you get the idea... :)
 				break;

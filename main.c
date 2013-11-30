@@ -63,7 +63,7 @@ void TIM4_IRQHandler(void)
 	}
 	
 	// end any SPI transactions
-	spi1_dac_finalize();
+	// spi1_dac_finalize();
 	
 	// kill ISR execution indicator
 	GPIOC->BRR = GPIO_BRR_BR8;
