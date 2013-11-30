@@ -13,4 +13,5 @@ OBJS=  $(STARTUP) main.o iopins.o main_isr.o lcd.o ringbuffer.o midi.o spi_dac.o
 
 include $(TEMPLATEROOT)/Makefile.common
 
-
+resources: 
+	./lookuptables.py > lookuptables.h
