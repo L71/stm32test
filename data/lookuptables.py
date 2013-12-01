@@ -17,7 +17,7 @@ def print_c_list(datatype, varname, data) :
         if c == cols :
             print ''
             c=0
-    print '}'
+    print '};'
     
 
 
