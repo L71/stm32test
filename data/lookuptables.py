@@ -28,7 +28,7 @@ def print_c_list(datatype, varname, data) :
 
 def phasetable() :
     keys = 12
-    fractions = 2   # steps in between each half note
+    fractions = 64   # steps in between each half note
     base_freq = 2093   # frequency of C7, base note of the highest supported octave
     base_key = 96   # MIDI key
 
