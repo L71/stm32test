@@ -86,7 +86,7 @@ inline void lcd_write_cmd(uint8_t byte) {
 	write_byte(&lcd_buf_str, &lcd_buf[0], lsb);
 }
 
-// print a hex value 0xXX
+// print a hex value 0xNN
 inline void lcd_write_hex8(uint8_t byte) {
 	uint8_t msb=(byte & 0xf0);
 	uint8_t lsb=(byte & 0x0f);
@@ -99,6 +99,21 @@ inline void lcd_write_hex8(uint8_t byte) {
 	lcd_write_char(lsb);
 }
 
+// print a hex value 0xNNNN
+inline void lcd_write_hex16(uint16_t word) {
+	uint8_t msb=(uint8_t)((word & 0xff00) >> 8);
+	uint8_t lsb=(uint8_t)(word & 0x00ff);
+	lcd_write_hex8(msb);
+	lcd_write_hex8(lsb);
+}
+
+// print a hex value 0xNNNNNNNN
+inline void lcd_write_hex32(uint32_t longword) {
+	uint16_t msw=(uint16_t)((longword & 0xffff0000) >> 16);
+	uint16_t lsw=(uint16_t)(longword & 0x0000ffff);
+	lcd_write_hex16(msw);
+	lcd_write_hex16(lsw);
+}
 
 // find out lcd display memory address of an x,y position
 uint8_t lcd_get_addr(uint8_t x, uint8_t y) {

@@ -18,8 +18,10 @@ void lcd_hw_write_finalize(void);
 void lcd_write_char(uint8_t);
 void lcd_write_cmd(uint8_t);
 
-// print an 8bit hex value to the buffer
+// print hex values if different sizes to the buffer
 void lcd_write_hex8(uint8_t);
+void lcd_write_hex16(uint16_t);
+void lcd_write_hex32(uint32_t);
 
 // put display cursor in a specified place
 void lcd_place_cursor(uint8_t, uint8_t);
