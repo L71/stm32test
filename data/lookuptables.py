@@ -1,5 +1,6 @@
 #!/usr/bin/env python 
 
+import numpy
 
 # python list -> C data type printer
 def print_c_list(datatype, varname, data) :
@@ -7,10 +8,20 @@ def print_c_list(datatype, varname, data) :
     datasize=len(data)
     cols = 8 # insert line break every N lines in data output
     c = 0
+    if datatype == 'uint32_t' or datatype == 'int32_t' :
+        formatstr='{:#11x}'
+        cols = 6
+    elif datatype == 'uint16_t' or datatype == 'int16_t' :
+        formatstr='{:#7x}'
+        cols = 8
+    elif datatype == 'uint8_t' or datatype == 'int8_t' :
+        formatstr='{:#5x}'
+        cols = 12
+    
     print datatype, varname+'['+str(datasize)+']'+' = {'
     for i, e in enumerate(data) :
         # print e,
-        print '0x'+'{:08X}'.format(e),
+        print formatstr.format(e),
         if i < datasize-1 :
             print ',',
         c = c+1
@@ -49,6 +60,22 @@ def phasetable() :
     print_c_list('uint32_t', 'phasetable', datalist)
 
 
+# build a sine wave table
+# 1024 samples * 12 bit resolution
+
+def sinewave() :
+    samples = 1024.0
+    amplitude = 2047.0    # P-P /2
+
+    i=0
+    datalist=[]
+    while i < samples :
+        value = numpy.sin((2*numpy.pi)*(i/samples))*amplitude 
+        datalist.append(int(round(value)))
+        i=i+1
+    # print datalist
+    print_c_list('int16_t', 'wt_sinewave', datalist)   
+      
 # main call list
 phasetable()
-
+sinewave()
