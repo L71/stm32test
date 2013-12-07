@@ -7,7 +7,7 @@ ASFLAGS = -g
 
 # object files
 
-OBJS=  $(STARTUP) main.o iopins.o main_isr.o lcd.o ringbuffer.o midi.o spi_dac.o
+OBJS=  $(STARTUP) main.o iopins.o main_isr.o lcd.o ringbuffer.o midi.o spi_dac.o synth_core.o
 
 # include common make file
 

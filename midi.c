@@ -5,6 +5,7 @@
 #include "ringbuffer.h"
 #include "lcd.h"
 #include "spi_dac.h"
+#include "synth_core.h"
 
 // global define values and data structures
 
