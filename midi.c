@@ -164,9 +164,10 @@ void midi_process_buffer(void) {
 				lcd_place_cursor(0,1);
 				// lcd_write_char(0b11011010);
 				lcd_write_char(0x01);
-				lcd_write_hex8(channel);
-				lcd_write_hex8(key_no);
-				lcd_write_hex8(key_vel);
+				// lcd_write_hex8(channel);
+				//l cd_write_hex8(key_no);
+				// lcd_write_hex8(key_vel);
+				lcd_write_hex32(key_to_phasestep(key_no*256));
 
 // 				for ( i=0 ; i <= 3 ; i++ ) {
 // 					if ( midi_key[i] == 0 || midi_key[i] == key_no ) {
