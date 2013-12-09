@@ -6,6 +6,7 @@
 #include "lcd.h"
 #include "spi_dac.h"
 #include "synth_core.h"
+#include "global.h"
 
 // global define values and data structures
 
@@ -64,6 +65,9 @@ inline void midi_buffer_byte(uint8_t byte) {
 
 // MIDI data input processor
 void midi_process_buffer(void) {
+	
+	cpu_load_led_on();	
+	
 	// MIDI global state keeper:
 	static uint8_t midi_main_state;
 	static uint8_t midi_sub_state;
@@ -230,6 +234,7 @@ void midi_process_buffer(void) {
 			break;
 		}
 	}
+	cpu_load_led_off();
 }
 
 

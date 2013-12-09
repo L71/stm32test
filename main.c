@@ -6,6 +6,7 @@
 #include "midi.h"
 #include "ringbuffer.h"
 #include "spi_dac.h"
+#include "global.h"
 
 void ldelay(void){
 	int i = 10000; /* waaaaiiiit */ 
@@ -39,7 +40,7 @@ void TIM4_IRQHandler(void)
 	uint8_t midi_input = 0 ; 
 	
 	// light up ISR execution indicator
-	GPIOC->BSRR = GPIO_BSRR_BS8; 
+	cpu_load_led_on(); 
 	// delay();
 
 	
@@ -66,7 +67,8 @@ void TIM4_IRQHandler(void)
 	// spi1_dac_finalize();
 	
 	// kill ISR execution indicator
-	GPIOC->BRR = GPIO_BRR_BR8;
+	cpu_load_led_off();
+	
 	// clear timer4 interrupt flag before return
 	TIM4->SR = (uint16_t)~TIM_SR_UIF;  
 }
