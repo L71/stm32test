@@ -3,7 +3,7 @@
 #include <stm32f10x.h> 
 
 // setup SPI1
-void spi1_setup_hw(void) {
+void spi1_dac_setup_hw(void) {
 	// setup: 16bit data frames, bit rate 72MHz/4 = 18MHz, SPI Master mode, SW slave management, Set SSI bit (keep as master).
 	SPI1->CR1 = SPI_CR1_DFF | SPI_CR1_BR_0 | SPI_CR1_MSTR | SPI_CR1_SSM | SPI_CR1_SSI ;
 	
