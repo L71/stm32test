@@ -53,21 +53,23 @@ void midi_setup_hw(void) {
 	USART1->CR1 |= USART_CR1_RE ;	// enable USART1 reciever
 }
 
-// initialize LCD data buffer
+// initialize MIDI data buffer
 void midi_setup_buffers(void) {
 	buffer_init(&midi_recbuf_str, MIDI_REC_BUF_SIZE);
 }
 
 // put a byte in the MIDI buffer
 inline void midi_buffer_byte(uint8_t byte) {
-	write_byte(&midi_recbuf_str, &midi_recbuf[0], byte);
+	if (is_writeable(&midi_recbuf_str)) {
+		write_byte(&midi_recbuf_str, &midi_recbuf[0], byte);
+	} else {
+		global_indicate_error(MIDI_BUF_NOT_WR);
+	}
 }
 
 // MIDI data input processor
 void midi_process_buffer(void) {
-	
-	cpu_load_led_on();	
-	
+		
 	// MIDI global state keeper:
 	static uint8_t midi_main_state;
 	static uint8_t midi_sub_state;
@@ -91,6 +93,8 @@ void midi_process_buffer(void) {
 // 			midi_event_counter ++;
 // 		}
 
+		cpu_load_led_on();	
+	
 		// lcd_place_cursor(0,0);
 		// lcd_write_hex8(last_in);
 		
@@ -215,17 +219,17 @@ void midi_process_buffer(void) {
 				// midi_state = MIDI_WAIT_FOR_KEYOFF_NO;
 				break;
 			case MIDI_GOT_CTRL :
-				lcd_place_cursor(0,3);
-				// lcd_write_char(0b11101110);
-				lcd_write_char(0x00);
-				lcd_write_hex8(channel);
-				lcd_write_hex8(key_no);
-				lcd_write_hex8(key_vel);
+				// lcd_place_cursor(0,3);
+
+				// lcd_write_char(0x00);
+				// lcd_write_hex8(channel);
+				// lcd_write_hex8(key_no);
+				// lcd_write_hex8(key_vel);
 				spi1_dac_write_cha(key_vel*16);
 				spi1_dac_finalize();
 				spi1_dac_write_chb((127-key_vel)*16);
 				spi1_dac_finalize();
-				// spi_dac_write_chb(key_vel*16);
+				
 				// midi_set_ctrl(key_no,key_vel);	// not really key_no etc, but you get the idea... :)
 				break;
 		}

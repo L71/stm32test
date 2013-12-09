@@ -31,22 +31,20 @@ void led_toggle(void)
 // main system TIM4 interrupt handler
 void TIM4_IRQHandler(void)
 {
+	// light up ISR execution indicator
+	cpu_load_led_on(); 
+	
 	// static loop counter, keeps track of periodic actions
 	// to execute at lower intervals than main ISR period
 	static uint8_t isr_c ;
 	isr_c++ ;
 	isr_c &= 0b00111111 ; // ISR counter, max 64 = wrap around at appr. 1.6 ms.
 	
-	uint8_t midi_input = 0 ; 
+	// uint8_t midi_input = 0 ; 
 	
-	// light up ISR execution indicator
-	cpu_load_led_on(); 
-	// delay();
-
-	
-	if ( isr_c == 32 ) {
-		led_toggle();  // blink led on PC9
-	} 
+//	if ( isr_c == 32 ) {
+//		led_toggle();  // blink led on PC9
+//	} 
 	
 	if ( isr_c == 40 ) {	// check for data in LCD buffer
 		lcd_hw_write();
@@ -56,21 +54,16 @@ void TIM4_IRQHandler(void)
 	}
 	
 	if (USART1->SR & USART_SR_RXNE) {	// USART has recieved a byte
-		// lcd_place_cursor(0,0);
-		// lcd_write_char(127) ;
-		midi_input = USART1->DR ;
-		midi_buffer_byte(midi_input);
-		// lcd_write_hex8(midi_input);
+		// midi_input = USART1->DR ;
+		// midi_buffer_byte(midi_input);
+		midi_buffer_byte(USART1->DR);
 	}
-	
-	// end any SPI transactions
-	// spi1_dac_finalize();
-	
-	// kill ISR execution indicator
-	cpu_load_led_off();
 	
 	// clear timer4 interrupt flag before return
 	TIM4->SR = (uint16_t)~TIM_SR_UIF;  
+	
+	// kill ISR execution indicator
+	cpu_load_led_off();
 }
 
 
@@ -85,8 +78,8 @@ int main(void) {
 	lcd_setup_hw();
 	lcd_write_custom_chars();
 	
-	// setuo SPI1 DAC communication
-	spi1_setup_hw();
+	// setup SPI1 DAC communication
+	spi1_dac_setup_hw();
 	
 	// initialize & start main timer
 	setup_main_isr();

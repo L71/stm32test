@@ -5,6 +5,7 @@
 #include <stm32f10x.h> 
 
 #include "ringbuffer.h"
+#include "global.h"
 
 // global defines & declarations
 
@@ -73,8 +74,13 @@ inline void lcd_write_char(uint8_t byte) {
 	// data mode -> bit 4 = H
 	msb |= 0x10 ;
 	lsb |= 0x10 ;
-	write_byte(&lcd_buf_str, &lcd_buf[0], msb);
-	write_byte(&lcd_buf_str, &lcd_buf[0], lsb);
+	if (is_writeable(&lcd_buf_str)) {
+		write_byte(&lcd_buf_str, &lcd_buf[0], msb);
+		write_byte(&lcd_buf_str, &lcd_buf[0], lsb);
+	} else {
+		global_indicate_error(LCD_BUF_NOT_WR);
+	}
+		
 }
 
 // put a command in the data buffer
