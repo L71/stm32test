@@ -22,6 +22,14 @@ struct osc_set_str {
 };
 struct osc_set_str osc[POLYPHONY];	// osc[0-N] 
 
+// current playing patch data structure
+struct patch {
+	uint16_t osc1_transpose;	//osc1 transpose +/- keys
+	uint16_t osc2_transpose;	//osc2 transpose +/- keys
+	uint16_t osc2_detune;		//osc2 detune
+	uint16_t osc2_phase;		//osc2 start phase relative osc1
+};
+
 
 // Audio data output buffer, filled in here and read from main timer ISR
 struct ringbuf audiobuf_str; 
