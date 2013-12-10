@@ -7,6 +7,7 @@
 #include "ringbuffer.h"
 #include "spi_dac.h"
 #include "global.h"
+#include "synth_core.h"
 
 void ldelay(void){
 	int i = 10000; /* waaaaiiiit */ 
@@ -89,6 +90,9 @@ int main(void) {
 	midi_setup_buffers();
 	midi_setup_hw();
 
+	// synth core setup & initialization
+	synth_core_setup();
+	
 	
 	lcd_place_cursor(5,0);
     uint8_t i;
