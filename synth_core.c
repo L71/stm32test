@@ -2,6 +2,31 @@
 
 #include <stm32f10x.h> 	// included to get data types, not used otherwise
 #include "lookuptables.h"
+#include "ringbuffer.h"
+
+// Defines etc:
+#define POLYPHONY			4
+#define AUDIO_BUF_SIZE		32
+
+
+
+// sound engine data structures
+
+// oscillator control struct[]
+struct osc_set_str {
+	uint16_t origin_key;		// original non-detuned key.pitch (or 0 if not playing)
+	uint32_t phase_cur_ptr1;	// current position for phase acc 1
+	uint32_t phase_step1;		// phase step length for acc 1 (including modulations)
+	uint32_t phase_cur_ptr2;	// current position for phase acc 2
+	uint32_t phase_step2;		// phase step length for acc 2(including modulations)
+};
+struct osc_set_str osc[POLYPHONY];	// osc[0-N] 
+
+
+// Audio data output buffer, filled in here and read from main timer ISR
+struct ringbuf audiobuf_str; 
+// the actual data buffer
+uint16_t audiobuf[AUDIO_BUF_SIZE];	
 
 
 // convert midikey.fraction pitch value (8+8bits) to 32-bit phase accumulator step length.
@@ -32,3 +57,13 @@ uint32_t key_to_phasestep(uint16_t key_fract) {
 	
 	return(phasetable[(k*64)+f]/divider);	// return entry in table
 }
+
+
+// synth core startup stuff
+void synth_core_setup() {
+	// initialize audio output buffer
+	buffer_init(&audiobuf_str, AUDIO_BUF_SIZE);
+}
+
+
+
