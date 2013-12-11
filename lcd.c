@@ -59,11 +59,9 @@ inline void lcd_hw_write(void) {
 // do a H->L transition on the E pin on the display
 // any lcd_hw_write call must be followed by this shortly after
 inline void lcd_hw_write_finalize(void) {
-	// if GPIOC bit 5 is set, clear it.
-    if (GPIOC->ODR & 0x0020)
-    {
-        GPIOC->BRR = 0x0020 ;
-    }
+	// make sure GPIOC bit 5 is L.
+	// this H->L transition clocks data into the display.
+    GPIOC->BRR = 0x0020 ;
 }
 
 // put a character in the data buffer
