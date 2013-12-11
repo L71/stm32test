@@ -23,7 +23,7 @@ void TIM4_IRQHandler(void)
 	// to execute at lower intervals than main ISR period
 	static uint8_t isr_c ;
 	isr_c++ ;
-	isr_c &= 0b00011111 ; // ISR counter, max 32 = wrap around at appr. 0.8 ms.
+	isr_c &= 0b00111111 ; // ISR counter, max 64 = wrap around at appr. 1.6 ms.
 	
 	
 	if ( isr_c == 16 ) {	// check for data in LCD buffer
