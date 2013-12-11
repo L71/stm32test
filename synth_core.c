@@ -168,7 +168,7 @@ void render_audio() {
 				
 			}
 		}
-		audiomixout+=(audiomix/10);
+		audiomixout+=(audiomix/20);
 		audiomixout&=0x0fff;
 		// write audio frame to output buffer
 		__disable_irq();	// make sure we have exclusive access to buffer while writing
