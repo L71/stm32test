@@ -9,25 +9,6 @@
 #include "global.h"
 #include "synth_core.h"
 
-void ldelay(void){
-	int i = 10000; /* waaaaiiiit */ 
-	while (i-- > 0)
-		asm("nop"); 
-}
-
-void led_toggle(void)
-{
-    // If PORTC BIT 9 set, clear it
-    if (GPIOC->ODR & GPIO_ODR_ODR9)
-    {
-        GPIOC->BRR = GPIO_BRR_BR9;
-    }
-    else // set it
-    {
-		GPIOC->BSRR = GPIO_BSRR_BS9;
-    }
-}
-
 
 // main system TIM4 interrupt handler
 void TIM4_IRQHandler(void)
@@ -35,22 +16,20 @@ void TIM4_IRQHandler(void)
 	// light up ISR execution indicator
 	cpu_load_led_on(); 
 	
+	// finish any still running SPI DAC transaction
+	spi1_dac_finalize();
+	
 	// static loop counter, keeps track of periodic actions
 	// to execute at lower intervals than main ISR period
 	static uint8_t isr_c ;
 	isr_c++ ;
-	isr_c &= 0b00111111 ; // ISR counter, max 64 = wrap around at appr. 1.6 ms.
+	isr_c &= 0b00011111 ; // ISR counter, max 32 = wrap around at appr. 0.8 ms.
 	
-	// uint8_t midi_input = 0 ; 
 	
-//	if ( isr_c == 32 ) {
-//		led_toggle();  // blink led on PC9
-//	} 
-	
-	if ( isr_c == 40 ) {	// check for data in LCD buffer
+	if ( isr_c == 16 ) {	// check for data in LCD buffer
 		lcd_hw_write();
 	}
-	if ( isr_c == 45 ) {	// finalize LCD data transfer
+	if ( isr_c == 24 ) {	// finalize LCD data transfer
 		lcd_hw_write_finalize();
 	}
 	
@@ -60,11 +39,15 @@ void TIM4_IRQHandler(void)
 		midi_buffer_byte(USART1->DR);
 	}
 	
-	// clear timer4 interrupt flag before return
-	TIM4->SR = (uint16_t)~TIM_SR_UIF;  
+	// read audio buffer & copy to DAC CH A.
+	spi1_dac_write_cha(read_audio_buffer());
 	
 	// kill ISR execution indicator
 	cpu_load_led_off();
+	
+	// clear timer4 interrupt flag before return
+	TIM4->SR = (uint16_t)~TIM_SR_UIF;  
+	
 }
 
 
@@ -104,6 +87,7 @@ int main(void) {
 		// led_toggle();
 		midi_process_buffer();
 		// ldelay();
+		render_audio();
 	}
 	
 }
