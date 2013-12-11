@@ -3,13 +3,6 @@
 // main system timer setup & ISR 
 #include <stm32f10x.h> 
 
-// delay function for debug
-void delay(void){
-	int i = 50; /* waaaaiiiit */ 
-	while (i-- > 0)
-		asm("nop"); 
-}
-
 // Setup main timer & interrupt for system
 void setup_main_isr(void) {
 	
