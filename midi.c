@@ -225,10 +225,12 @@ void midi_process_buffer(void) {
 				// lcd_write_hex8(channel);
 				// lcd_write_hex8(key_no);
 				// lcd_write_hex8(key_vel);
-				spi1_dac_write_cha(key_vel*16);
-				spi1_dac_finalize();
-				spi1_dac_write_chb((127-key_vel)*16);
-				spi1_dac_finalize();
+				// spi1_dac_write_cha(key_vel*16);
+				// spi1_dac_finalize();
+				// spi1_dac_write_chb((127-key_vel)*16);
+				// spi1_dac_finalize();
+				TIM4->CCR1 = key_vel*2 ;
+				TIM4->CCR2 = 255-key_vel*2 ;
 				
 				// midi_set_ctrl(key_no,key_vel);	// not really key_no etc, but you get the idea... :)
 				break;
