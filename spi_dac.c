@@ -18,7 +18,7 @@ void spi1_dac_setup_hw(void) {
 
 }
 
-void spi1_dac_finalize(void) {
+inline void spi1_dac_finalize(void) {
 	// check (and if necessary, wait for) completion of SPI transfer.
 	while(SPI1->SR & SPI_SR_BSY) { // wait for BSY to clear
 		;
@@ -26,15 +26,15 @@ void spi1_dac_finalize(void) {
 	GPIOA->BSRR = 0x0010 ;	// SPI SS -> H
 }
 
-void spi1_dac_write_cha(uint16_t word) {
-	word &= 0x0fff ;	// strip any unwanted bits
+inline void spi1_dac_write_cha(uint16_t word) {
+	// word &= 0x0fff ;	// strip any unwanted bits
 	word |= 0x1000 ;
 	GPIOA->BRR = 0x0010 ;	// SS -> L
 	SPI1->DR = word ;
 }
 
-void spi1_dac_write_chb(uint16_t word) {
-	word &= 0x0fff ;	// strip any unwanted bits
+inline void spi1_dac_write_chb(uint16_t word) {
+	// word &= 0x0fff ;	// strip any unwanted bits
 	word |= 0x9000 ;
 	GPIOA->BRR = 0x0010 ;	// SS -> L
 	SPI1->DR = word ;
