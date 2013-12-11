@@ -38,10 +38,10 @@ void setup_main_isr(void) {
 	// actually enable output pins
 	TIM4->CCER = TIM_CCER_CC1E | TIM_CCER_CC2E | TIM_CCER_CC3E | TIM_CCER_CC4E;
 	
-	TIM4->CCR1 = 25 ;
-	TIM4->CCR2 = 75 ;
-	TIM4->CCR3 = 155 ;
-	TIM4->CCR4 = 225 ;
+	// TIM4->CCR1 = 25 ;
+	// TIM4->CCR2 = 75 ;
+	// TIM4->CCR3 = 155 ;
+	// TIM4->CCR4 = 225 ;
 }
 
 void enable_main_isr() {
