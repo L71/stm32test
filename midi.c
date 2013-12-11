@@ -82,7 +82,7 @@ void midi_process_buffer(void) {
 	uint8_t last_in;
 // 	uint8_t last_in=uart_in;
 	
-	uint8_t maxframes=1 ;	// max bytes to process in one go.
+	uint8_t maxframes=8 ;	// max bytes to process in one go.
 	
 	while (is_readable(&midi_recbuf_str)) {
 		__disable_irq();	// make sure we have exclusive access to buffer while reading it.
@@ -169,66 +169,39 @@ void midi_process_buffer(void) {
 			case MIDI_GOT_KEYON :
 				// midi_state = MIDI_WAIT_NEW_EVENT;
 				// key_start_play(key_no,key_vel);
-				lcd_place_cursor(0,1);
-				// lcd_write_char(0b11011010);
-				lcd_write_char(0x01);
+			
+				// lcd_place_cursor(0,1);
+				// lcd_write_char(0x01);
 				// lcd_write_hex8(channel);
-				//l cd_write_hex8(key_no);
+				// lcd_write_hex8(key_no);
 				// lcd_write_hex8(key_vel);
-				lcd_write_hex32(key_to_phasestep(key_no*256));
+				// lcd_write_hex32(key_to_phasestep(key_no*256));
+				
+				key_on(key_no, key_vel);
 
-// 				for ( i=0 ; i <= 3 ; i++ ) {
-// 					if ( midi_key[i] == 0 || midi_key[i] == key_no ) {
-// 						// voice[i].key=key_no;
-// 						midi_key[i]=key_no;
-// 						voice[i].step=pgm_read_word(&(keystep[key_no]));
-// 						// voice[i].step=keystep[key];
-// 						voice[i].cur_pos=0;
-// 						// voice[i].wave = 0;
-// 						// voice[i].step=keystep[key];
-// 						voice[i].play=key_vel;  // play must be activated last!
-// 						break;
-// 					}
-// 				}
 				key_no = 0;
 				key_vel = 0;
-				// midi_state = MIDI_WAIT_NEW_EVENT;
-				// midi_state = MIDI_WAIT_FOR_KEYON_NO;
+
 				break;
 
 			case MIDI_GOT_KEYOFF :
-				// midi_state = MIDI_WAIT_NEW_EVENT;
-				// key_stop_play(key_no);
-				lcd_place_cursor(0,2);
-				// lcd_write_char(0b11011001);
-				lcd_write_char(0x02);
-				lcd_write_hex8(channel);
-				lcd_write_hex8(key_no);
-				lcd_write_hex8(key_vel);
-// 				for ( i=0 ; i <= 3 ; i++ ) {
-// 					if ( midi_key[i] == key_no ) {
-// 						voice[i].play = 0; // play attr. must be cleared first!
-// 						voice[i].step = 0;
-// 						midi_key[i]=0;
-// 						// voice[i].key = 0;
-// 					}
-// 				}
+
+				// lcd_place_cursor(0,2);
+
+				// lcd_write_char(0x02);
+				// lcd_write_hex8(channel);
+				// lcd_write_hex8(key_no);
+				// lcd_write_hex8(key_vel);
+				key_off(key_no, key_vel);
+
 				key_no = 0;
 				key_vel = 0;
-				// midi_state = MIDI_WAIT_NEW_EVENT;
-				// midi_state = MIDI_WAIT_FOR_KEYOFF_NO;
+
 				break;
 			case MIDI_GOT_CTRL :
 				// lcd_place_cursor(0,3);
 
-				// lcd_write_char(0x00);
-				// lcd_write_hex8(channel);
-				// lcd_write_hex8(key_no);
-				// lcd_write_hex8(key_vel);
-				// spi1_dac_write_cha(key_vel*16);
-				// spi1_dac_finalize();
-				// spi1_dac_write_chb((127-key_vel)*16);
-				// spi1_dac_finalize();
+
 				TIM4->CCR1 = key_vel*2 ;
 				TIM4->CCR2 = 255-key_vel*2 ;
 				
