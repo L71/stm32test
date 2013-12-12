@@ -1,40 +1,8 @@
 #!/usr/bin/env python 
 
 import numpy
+import p2c
 
-# python list -> C data type printer
-def print_c_list(datatype, varname, data) :
-
-    datasize=len(data)
-    # defaults print parameters...
-    cols=8 # insert line break every N lines in data output
-    formatstr='{:#9x}' # default printout format 8 pos Hex.
-    c=0
-    
-    # setup for specific data types
-    if datatype == 'uint32_t' or datatype == 'int32_t' :
-        formatstr='{:#11x}'
-        cols=6
-    elif datatype == 'uint16_t' or datatype == 'int16_t' :
-        formatstr='{:#7x}'
-        cols=8
-    elif datatype == 'uint8_t' or datatype == 'int8_t' :
-        formatstr='{:#5x}'
-        cols=12
-    
-    # print C definition:
-    print datatype, varname+'['+str(datasize)+']'+' = {'
-    for i, e in enumerate(data) :
-        # print e,
-        print formatstr.format(e),
-        if i < datasize-1 :
-            print ',',
-        c = c+1
-        if c == cols :
-            print ''
-            c=0
-    print '};'
-    
 # This part calculates the phase stepping data for the phase accumulators
 # Output: list of phase counter values (uint32_t[]).
 # Equal 12-tone temperament
@@ -59,7 +27,7 @@ def phasetable() :
         datalist.append(step)
         i=i+1
 
-    print_c_list('uint32_t', 'phasetable', datalist)
+    p2c.print_c_list('uint32_t', 'phasetable', datalist)
 
 
 # build a sine wave table
@@ -76,8 +44,39 @@ def sinewave() :
         datalist.append(int(round(value)))
         i=i+1
     # print datalist
-    print_c_list('int16_t', 'wt_sinewave', datalist)   
-      
+    p2c.print_c_list('int16_t', 'wt_sinewave', datalist)   
+
+
+# build a 2d array of sines+Nth harmonics
+def sines_wavetable() :
+    samples=1024.0      # samples per table
+    amplitude=2047.0    # amplitude scale P-P/2
+    out_array=[]
+    wave_array=[]
+    harmonics_max=5     # final table will have up to this harmonic added
+    
+    n=1
+    while n <= harmonics_max :
+        i=0.0
+        while i < samples :
+            x=1.0
+            mix=0.0
+            while x <= n :
+                mix=mix+numpy.sin((2*numpy.pi)*(i/samples)*x)*(1/x)*amplitude
+                x=x+1
+            wave_array.append(int(round(mix)))
+            i=i+1
+        out_array.append(wave_array)
+        wave_array=[]
+        n=n+1
+    # print out_array
+    p2c.print_c_2d_array('int16_t', 'wt_sinewave', out_array)
+    
 # main call list
 phasetable()
-sinewave()
+# sinewave()
+sines_wavetable()
+
+
+
+
