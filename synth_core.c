@@ -90,7 +90,7 @@ void synth_core_setup() {
 	// initialize audio output buffer
 	buffer_init(&audiobuf_str, AUDIO_BUF_SIZE);
 	lcd_place_cursor(0,1);
-	lcd_write_hex32(&wt_sinewave[0][0]);
+	lcd_write_hex32((uint32_t)&wt_sinewave[0][0]);
 }
 
 void printkeys(uint8_t x) {
