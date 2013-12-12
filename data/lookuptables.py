@@ -27,7 +27,7 @@ def phasetable() :
         datalist.append(step)
         i=i+1
 
-    p2c.print_c_list('uint32_t', 'phasetable', datalist)
+    p2c.print_c_list('const uint32_t', 'phasetable', datalist)
 
 
 # build a sine wave table
@@ -70,7 +70,7 @@ def sines_wavetable() :
         wave_array=[]
         n=n+1
     # print out_array
-    p2c.print_c_2d_array('int16_t', 'wt_sinewave', out_array)
+    p2c.print_c_2d_array('const int16_t', 'wt_sinewave', out_array)
     
 # main call list
 phasetable()
