@@ -7,7 +7,7 @@
 #include "lcd.h"
 
 // Defines etc:
-#define POLYPHONY			8
+#define POLYPHONY			6
 #define AUDIO_BUF_SIZE		32
 
 // DA converters zero level and max zero-peak amplitude (set for 12bit DAC, 4096 levels)
@@ -20,8 +20,10 @@
 // oscillator control structs
 struct osc_set_str {
 	uint16_t origin_key;		// original non-detuned key.pitch (or 0 if not playing)
+	uint16_t waveform1;			// osc1 waveform table index
 	uint32_t phase_cur_ptr1;	// current position for phase acc 1
 	uint32_t phase_step1;		// phase step length for acc 1 (including modulations)
+	uint16_t waveform2;			// osc2 waveform table index
 	uint32_t phase_cur_ptr2;	// current position for phase acc 2
 	uint32_t phase_step2;		// phase step length for acc 2(including modulations) 
 };
@@ -64,9 +66,9 @@ uint32_t key_to_phasestep(uint16_t key_fract) {
 	uint16_t divider=1;	// table divisor
 	
 	//failsafe; pitch > midi key #108 (C8) not supported. Max out here.
-	if (key_fract > ((96+13)*256)) {
+	if (key_fract > ((96+12)*256)) {
 		return(phasetable[12*table_fractions]);
-	}
+	} 
 
 	// loop and adjust divider until we have the right octave
 	while (key < table_base_key) {
@@ -87,10 +89,12 @@ uint32_t key_to_phasestep(uint16_t key_fract) {
 void synth_core_setup() {
 	// initialize audio output buffer
 	buffer_init(&audiobuf_str, AUDIO_BUF_SIZE);
+	lcd_place_cursor(0,1);
+	lcd_write_hex32(&wt_sinewave[0][0]);
 }
 
 void printkeys(uint8_t x) {
-	uint8_t i;
+	// uint8_t i;
 	lcd_place_cursor(x*2,3);
 	// for ( i=0 ; i < POLYPHONY ; i++ ) {
 		// lcd_write_hex8(playingkeys[i]);
@@ -108,6 +112,8 @@ void key_on(uint8_t key, uint8_t vel) {
 			osc[i].phase_step1=key_to_phasestep(osc[i].origin_key);
 			osc[i].phase_cur_ptr2=0;
 			osc[i].phase_step2=key_to_phasestep(osc[i].origin_key+30); // detune for tesing
+			osc[i].waveform1=vel >> 5;
+			osc[i].waveform2=vel >> 5;
 			playingkeys[i]=key;	// voice allocator 
 			osc_ctrl[i].velocity=vel;		// original velocity
 			osc_ctrl[i].volume=100;			// set volume = play
@@ -151,16 +157,10 @@ void render_audio() {
 				
 				// get 10 MS Bits for use as wave table pointer
 				wt_ptr1=(osc[N].phase_cur_ptr1 >> 22);	
-				audiomix+=wt_sinewave[wt_ptr1];
+				audiomix+=wt_sinewave[osc[N].waveform1][wt_ptr1];
 				
 				wt_ptr2=(osc[N].phase_cur_ptr2 >> 22);	
-				audiomix+=wt_sinewave[wt_ptr2];
-							
-				// if (osc[N].phase_cur_ptr1 & 0x80000000 ) {
-				//	audiomix=300;
-				// } else {
-				// 	audiomix=-300;
-				// }
+				audiomix+=wt_sinewave[osc[N].waveform2][wt_ptr2];
 				
 				// advance phase ptrs for next time
 				osc[N].phase_cur_ptr1 += osc[N].phase_step1;
