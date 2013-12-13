@@ -64,6 +64,15 @@ inline void lcd_hw_write_finalize(void) {
     GPIOC->BRR = 0x0020 ;
 }
 
+// put a byte in the LCD data buffer (unless it's full!)
+inline void lcd_byte_to_buffer(uint8_t byte) {
+	if (is_writeable(&lcd_buf_str)) {
+		write_byte(&lcd_buf_str, &lcd_buf[0], byte);
+	} else {
+		global_indicate_error(LCD_BUF_NOT_WR);
+	}
+}
+
 // put a character in the data buffer
 inline void lcd_write_char(uint8_t byte) {
 	uint8_t msb=(byte & 0xf0);
@@ -72,13 +81,8 @@ inline void lcd_write_char(uint8_t byte) {
 	// data mode -> bit 4 = H
 	msb |= 0x10 ;
 	lsb |= 0x10 ;
-	if (is_writeable(&lcd_buf_str)) {
-		write_byte(&lcd_buf_str, &lcd_buf[0], msb);
-		write_byte(&lcd_buf_str, &lcd_buf[0], lsb);
-	} else {
-		global_indicate_error(LCD_BUF_NOT_WR);
-	}
-		
+	lcd_byte_to_buffer(msb);
+	lcd_byte_to_buffer(lsb);	
 }
 
 // put a command in the data buffer
@@ -86,8 +90,8 @@ inline void lcd_write_cmd(uint8_t byte) {
 	uint8_t msb=(byte & 0xf0);
 	uint8_t lsb=(byte & 0x0f);
 	msb >>= 4;
-	write_byte(&lcd_buf_str, &lcd_buf[0], msb);
-	write_byte(&lcd_buf_str, &lcd_buf[0], lsb);
+	lcd_byte_to_buffer(msb);
+	lcd_byte_to_buffer(lsb);
 }
 
 // print a hex value 0xNN
