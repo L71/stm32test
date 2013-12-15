@@ -10,6 +10,12 @@ void setup_main_isr(void) {
 	// reload register = 256, prescaler = 7
 	// 72MHz / 7 / 256 -> 40178 interrupts/second (also PWM base frequency)
 	
+	// set priority for interrupts according to group; no subgrouping
+	SCB->AIRCR = 0x05fa0300;
+	
+	// set priority for this IRQ to highest (=0)
+	NVIC->IP[TIM4_IRQn] = 0x00 ; // MSB nibble indicates priority
+	
 	// enable clock to timer4
 	RCC->APB1ENR |= RCC_APB1ENR_TIM4EN ;
 	
