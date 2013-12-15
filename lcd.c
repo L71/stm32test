@@ -56,7 +56,6 @@ inline void lcd_hw_write(void) {
 	}
 }
 
-// do a H->L transition on the E pin on the display
 // any lcd_hw_write call must be followed by this shortly after
 inline void lcd_hw_write_finalize(void) {
 	// make sure GPIOC bit 5 is L.
