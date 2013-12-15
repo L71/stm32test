@@ -77,7 +77,7 @@ void midi_process_buffer(void) {
 
 	static uint8_t key_no;
 	static uint8_t key_vel;
-	static uint8_t channel;
+	// static uint8_t channel;
 //	uint8_t i;
 	uint8_t last_in;
 // 	uint8_t last_in=uart_in;
@@ -99,7 +99,7 @@ void midi_process_buffer(void) {
 		// lcd_write_hex8(last_in);
 		
 		if ( last_in & 0x80 ) {	// If this is a status message... :
-			channel = last_in & 0x0f ;
+			// channel = last_in & 0x0f ;
 			switch ( last_in & 0xf0 ) {	// which voice/channel message is it?
 				case MIDI_KEYON_MSG :	// Key On
 					midi_main_state = MIDI_STATUS_KEYON;
