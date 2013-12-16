@@ -4,7 +4,7 @@
 #include <stm32f10x.h> 
 
 // Setup main timer & interrupt for system
-void setup_main_isr(void) {
+void setup_hf_timer(void) {
 	
 	// Timer4: CH1 - CH4 used for PWM output
 	// reload register = 256, prescaler = 7
@@ -43,7 +43,7 @@ void setup_main_isr(void) {
 	// TIM4->CCR4 = 225 ;
 }
 
-void enable_main_isr() {
+void enable_hf_timer() {
 	// reset timer
 	TIM4->CNT = 0x0 ;
 	// enable interrupts at timer4 update events
@@ -51,3 +51,12 @@ void enable_main_isr() {
 	// enable counter in upcounting mode
 	TIM4->CR1 |= TIM_CR1_CEN | TIM_CR1_URS ; 
 }
+
+void setup_lf_timer() {
+	;
+}
+
+void enable_lf_timer() {
+	;
+}
+

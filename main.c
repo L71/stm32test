@@ -1,7 +1,7 @@
 #include <stm32f10x.h> 
 
 #include "iopins.h"
-#include "main_isr.h"
+#include "timers.h"
 #include "lcd.h"
 #include "midi.h"
 #include "ringbuffer.h"
@@ -66,8 +66,8 @@ int main(void) {
 	spi1_dac_setup_hw();
 	
 	// initialize & start main timer
-	setup_main_isr();
-	enable_main_isr();
+	setup_hf_timer();
+	enable_hf_timer();
 	
 	// setup MIDI buffers and start USART for MIDI communication
 	midi_setup_buffers();
