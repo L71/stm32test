@@ -89,16 +89,18 @@ uint32_t key_to_phasestep(uint16_t key_fract) {
 void synth_core_setup() {
 	// initialize audio output buffer
 	buffer_init(&audiobuf_str, AUDIO_BUF_SIZE);
-	lcd_place_cursor(0,1);
-	lcd_write_hex32((uint32_t)&wt_sinewave[0][0]);
+	lcd_place_cursor(0,1);	// debug, debug, debug... :) 
+	// lcd_write_hex32((uint32_t)&wt_sinewave[0][0]);
+	lcd_write_hex32(SCB->AIRCR);
 }
 
+// debug help display...
 void printkeys(uint8_t x) {
 	// uint8_t i;
 	lcd_place_cursor(x*2,3);
 	// for ( i=0 ; i < POLYPHONY ; i++ ) {
 		// lcd_write_hex8(playingkeys[i]);
-		lcd_write_hex8(osc_ctrl[x].volume);
+		lcd_write_hex8(playingkeys[x]);
 		// }
 }
 
