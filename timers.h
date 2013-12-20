@@ -1,8 +1,8 @@
 // main system timer setup & ISR (header file)
 
-#ifndef _MAIN_ISR_H_
+#ifndef _TIMERS_H_
 
-#define _MAIN_ISR_H_
+#define _TIMERS_H_
 
 // setup and enable the high frequency timer (audio playback interrupt)
 void setup_hf_timer(void);
