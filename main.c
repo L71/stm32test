@@ -11,7 +11,7 @@
 
 
 // main system TIM4 interrupt handler
-void TIM4_IRQHandler(void)
+void TIM4_IRQHandler()
 {
 	// light up ISR execution indicator
 	cpu_load_led_on(); 
@@ -51,6 +51,24 @@ void TIM4_IRQHandler(void)
 }
 
 
+void TIM3_IRQHandler() {
+	cpu_load_led_on();
+	if (GPIOC->ODR & GPIO_ODR_ODR10)
+	{ 	// toggle LED @ GPIOC9
+		GPIOC->BRR = GPIO_BRR_BR10;
+	}
+	else
+	{
+		GPIOC->BSRR = GPIO_BSRR_BS10;
+	}
+
+
+	cpu_load_led_off();
+
+	// clear timer3 interrupt flag before return
+	TIM3->SR = (uint16_t)~TIM_SR_UIF;
+}
+
 // begin operations!
 int main(void) {
 
@@ -65,9 +83,12 @@ int main(void) {
 	// setup SPI1 DAC communication
 	spi1_dac_setup_hw();
 	
-	// initialize & start main timer
+	// initialize & start audio (hf) timer
 	setup_hf_timer();
 	enable_hf_timer();
+	// initialize & start env/lfo/ui etc (lf) timer
+	setup_lf_timer();
+	enable_lf_timer();
 	
 	// setup MIDI buffers and start USART for MIDI communication
 	midi_setup_buffers();
