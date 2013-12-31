@@ -20,35 +20,35 @@ uint8_t lcd_buf[LCD_BUF_SIZE];
 // known state and 4-bit data mode)
 void lcd_setup_hw(void) {
 	// put initialisation codes into lcd output buffer
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x03);
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x03);
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x03);
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x02);
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x02); // display function set, 4bit
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x0a); // 0x08
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x00); // display off
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x08); 
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x00); // display clear
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x01);
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x00); // cursor control / display on/off cmd
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x0c);
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x00); // address increment mode
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x06);
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x00); // home command
-	write_byte(&lcd_buf_str, &lcd_buf[0], 0x02);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x03);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x03);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x03);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x02);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x02); // display function set, 4bit
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x0a); // 0x08
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x00); // display off
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x08); 
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x00); // display clear
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x01);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x00); // cursor control / display on/off cmd
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x0c);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x00); // address increment mode
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x06);
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x00); // home command
+	rb_write_8(&lcd_buf_str, &lcd_buf[0], 0x02);
 }
 
 // initialize LCD data buffer
 void lcd_setup_buffer(void) {
-	buffer_init(&lcd_buf_str, LCD_BUF_SIZE);
+	rb_buffer_init(&lcd_buf_str, LCD_BUF_SIZE);
 }
 
 // check if there is stuff in the LCD buffer, then copy it to GPIO port.
 // should only be called from main ISR; no need to protect buffer read from interrupts.
 inline void lcd_hw_write(void) {
 	uint8_t byte;
-	if (is_readable(&lcd_buf_str)) {	
-		byte = read_byte(&lcd_buf_str, &lcd_buf[0]);
+	if (rb_is_readable(&lcd_buf_str)) {	
+		byte = rb_read_8(&lcd_buf_str, &lcd_buf[0]);
 		GPIOC->BRR = 0x001f ; // clear GPIOC output bits 0-4
 		GPIOC->BSRR = byte & 0x001f ;
 		// set GPIOC bit 5, this is the E pin on the display
@@ -65,8 +65,8 @@ inline void lcd_hw_write_finalize(void) {
 
 // put a byte in the LCD data buffer (unless it's full!)
 inline void lcd_byte_to_buffer(uint8_t byte) {
-	if (is_writeable(&lcd_buf_str)) {
-		write_byte(&lcd_buf_str, &lcd_buf[0], byte);
+	if (rb_is_writeable(&lcd_buf_str)) {
+		rb_write_8(&lcd_buf_str, &lcd_buf[0], byte);
 	} else {
 		global_indicate_error(LCD_BUF_NOT_WR);
 	}

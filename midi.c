@@ -55,13 +55,13 @@ void midi_setup_hw(void) {
 
 // initialize MIDI data buffer
 void midi_setup_buffers(void) {
-	buffer_init(&midi_recbuf_str, MIDI_REC_BUF_SIZE);
+	rb_buffer_init(&midi_recbuf_str, MIDI_REC_BUF_SIZE);
 }
 
 // put a byte in the MIDI buffer
 inline void midi_buffer_byte(uint8_t byte) {
-	if (is_writeable(&midi_recbuf_str)) {
-		write_byte(&midi_recbuf_str, &midi_recbuf[0], byte);
+	if (rb_is_writeable(&midi_recbuf_str)) {
+		rb_write_8(&midi_recbuf_str, &midi_recbuf[0], byte);
 	} else {
 		global_indicate_error(MIDI_BUF_NOT_WR);
 	}
@@ -84,9 +84,9 @@ void midi_process_buffer(void) {
 	
 	uint8_t maxframes=8 ;	// max bytes to process in one go.
 	
-	while (is_readable(&midi_recbuf_str)) {
+	while (rb_is_readable(&midi_recbuf_str)) {
 		__disable_irq();	// make sure we have exclusive access to buffer while reading it.
-		last_in=read_byte(&midi_recbuf_str,&midi_recbuf[0]);
+		last_in=rb_read_8(&midi_recbuf_str,&midi_recbuf[0]);
 		__enable_irq();
 		maxframes -- ;
 // 		if ( last_in != 0xfe ) {  // MIDI event counter. Skip "active sensing" messages (if any).
