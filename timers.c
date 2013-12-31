@@ -63,7 +63,7 @@ void setup_lf_timer() {
 	
  	// TIM4 auto-reload register (will generate interrupt when this is reached)
 	// test: should be 100 for 1ms interrupt interval
-	TIM3->ARR = 200 ;	// 4 ints/sec
+	TIM3->ARR = 100 ;	// 4 ints/sec
 }
 
 void enable_lf_timer() {
