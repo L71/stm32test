@@ -4,7 +4,7 @@
 #include <stm32f10x.h> 
 #include "ringbuffer.h"
 
-void rb_buffer_init(struct ringbuf *buf, uint8_t size) {
+void rb_buffer_init(struct ringbuf *buf, uint32_t size) {
 	buf->size = size-1 ;
 	buf->r_ptr = 0;
 	buf->w_ptr = 0;

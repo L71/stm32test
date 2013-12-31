@@ -11,7 +11,7 @@ struct ringbuf {
 	volatile uint32_t w_ptr;		// write pointer
 };
 
-void rb_buffer_init(struct ringbuf *, uint8_t);
+void rb_buffer_init(struct ringbuf *, uint32_t);
 
 // The following functions take these arguments:
 //	1) pointer to buffer control struct
