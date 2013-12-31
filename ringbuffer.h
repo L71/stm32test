@@ -27,12 +27,16 @@ void rb_write_8(struct ringbuf *, uint8_t *, uint8_t);
 
 void rb_write_16(struct ringbuf *, uint16_t *, uint16_t);
 
+void rb_write_32(struct ringbuf *, uint32_t *, uint32_t);
+
 // The following functions take these arguments:
 //	1) pointer to buffer control struct
 //	2) pointer to actual buffer element 0
 uint8_t rb_read_8(struct ringbuf *, uint8_t *);
 
 uint16_t rb_read_16(struct ringbuf *, uint16_t *);
+
+uint32_t rb_read_32(struct ringbuf *, uint32_t *);
 
 #endif
 
