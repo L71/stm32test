@@ -53,7 +53,7 @@ def sines_wavetable() :
     amplitude=2047.0    # amplitude scale P-P/2
     out_array=[]
     wave_array=[]
-    harmonics_max=5     # final table will have up to this harmonic added
+    harmonics_max=8     # final table will have up to this harmonic added
     
     n=1
     while n <= harmonics_max :
