@@ -7,7 +7,7 @@
 #include "lcd.h"
 
 // Defines etc:
-#define POLYPHONY			6
+#define POLYPHONY			10
 #define AUDIO_BUF_SIZE		32
 
 // DA converters zero level and max zero-peak amplitude (set for 12bit DAC, 4096 levels)
@@ -47,12 +47,26 @@ struct patch_str patch;
 
 // map of playing keys to oscillator slot.
 // each element is either a MIDI key number or 0 (if silent). 
-uint32_t playingkeys[POLYPHONY];
+// uint32_t playingkeys[POLYPHONY];
+
+
+// Voice status defines
+#define VOICE_STATE_OFF			0		// voice is not in use
+#define VOICE_STATE_PLAYING		1		// voice in use, "sustain" phase
+#define VOICE_STATE_RELEASED	2		// voice in use, "release" phase (1st candidate for reuse if voice shortage)
+
+struct voice_stat_str {
+	uint32_t voice_state;	// state of voice (playing, released while still playing or off)
+	uint32_t midi_key;		// original MIDI key that triggered it
+};
+struct voice_stat_str voice_status[POLYPHONY];	// array of voice status data structs
+
+
 
 // Audio data output buffer, filled in here and read from main timer ISR
 struct ringbuf audiobuf_str; 
 // the actual data buffer
-uint16_t audiobuf[AUDIO_BUF_SIZE];	
+uint32_t audiobuf[AUDIO_BUF_SIZE];
 
 
 // convert midikey.fraction pitch value (8+8bits) to 32-bit phase accumulator step length.
@@ -100,7 +114,7 @@ void printkeys(uint8_t x) {
 	lcd_place_cursor(x*2,3);
 	// for ( i=0 ; i < POLYPHONY ; i++ ) {
 		// lcd_write_hex8(playingkeys[i]);
-		lcd_write_hex8(playingkeys[x]);
+		lcd_write_hex8(voice_status[x].midi_key);
 		// }
 }
 
@@ -108,17 +122,19 @@ void printkeys(uint8_t x) {
 void key_on(uint8_t key, uint8_t vel) {
 	uint32_t i;
 	for ( i=0 ; i < POLYPHONY ; i++ ) {
-		if ( playingkeys[i] == 0 || playingkeys[i] == key ) {
+		if ( voice_status[i].midi_key == key || voice_status[i].voice_state == VOICE_STATE_OFF ) {
 			osc[i].origin_key=((uint32_t)key*256);	// original pitch
 			osc[i].phase_cur_ptr1=0;
 			osc[i].phase_step1=key_to_phasestep(osc[i].origin_key);
 			osc[i].phase_cur_ptr2=0;
 			osc[i].phase_step2=key_to_phasestep(osc[i].origin_key+30); // detune for testing
-			osc[i].waveform1=vel >> 5;
-			osc[i].waveform2=vel >> 5;
-			playingkeys[i]=key;	// voice allocator 
+			osc[i].waveform1=vel >> 4;
+			osc[i].waveform2=vel >> 4;
+			// playingkeys[i]=key;	// voice allocator 
 			osc_ctrl[i].velocity=vel;		// original velocity
 			osc_ctrl[i].volume=100;			// set volume = play
+			voice_status[i].midi_key=key;
+			voice_status[i].voice_state=VOICE_STATE_PLAYING;
 			// lcd_place_cursor(0,1);
 			// lcd_write_char(0x01);
 			// lcd_write_hex32(osc[i].phase_step1);
@@ -132,10 +148,12 @@ void key_on(uint8_t key, uint8_t vel) {
 void key_off(uint8_t key, uint8_t vel) {
 	uint32_t i;
 	for ( i=0 ; i < POLYPHONY ; i++ ) {
-		if ( playingkeys[i] == key ) {
+		if ( voice_status[i].midi_key == key ) {
 			osc_ctrl[i].velocity=vel;
 			osc_ctrl[i].volume=0;
-			playingkeys[i]=0;
+			// playingkeys[i]=0;
+			voice_status[i].voice_state=VOICE_STATE_OFF;
+			voice_status[i].midi_key=0
 			printkeys(i);
 		}
 	}
@@ -155,7 +173,7 @@ void render_audio() {
 	while(rb_is_writeable(&audiobuf_str)) {	// do work while there is space in the audio buffer
 		audiomix=0;
 		for ( N=0 ; N < POLYPHONY ; N++ ) {	// loop thru oscillators
-			if ( osc_ctrl[N].volume != 0 ) {	// OK, actally do something ...
+			if ( voice_status[N].voice_state != VOICE_STATE_OFF ) {	// OK, actally do something ...
 				
 				// get 10 MS Bits for use as wave table pointer
 				wt_ptr1=(osc[N].phase_cur_ptr1 >> 22);	
@@ -170,11 +188,11 @@ void render_audio() {
 				
 			}
 		}
-		audiomixout+=(audiomix/20);
-		audiomixout&=0x0fff;
+		audiomixout+=(audiomix/30);
+		audiomixout&=0x00000fff;
 		// write audio frame to output buffer
 		__disable_irq();	// make sure we have exclusive access to buffer while writing
-		rb_write_16(&audiobuf_str,&audiobuf[0],(uint16_t)audiomixout);
+		rb_write_32(&audiobuf_str,&audiobuf[0],audiomixout);
 		__enable_irq();
 		
 		// maxframes-- ;	// of max # of frames done, leave.
@@ -186,9 +204,9 @@ void render_audio() {
 }
 
 // return a word from the audio buffer
-inline uint16_t read_audio_buffer() {
+inline uint32_t read_audio_buffer() {
 	if (rb_is_readable(&audiobuf_str)) {	// return next audio buffer word
-		return(rb_read_16(&audiobuf_str,&audiobuf[0]));
+		return(rb_read_32(&audiobuf_str,&audiobuf[0]));
 	} else {
 		return(DAC_ZERO);	// if underrun, return zero... 
 		global_indicate_error(AUDIO_BUF_NOT_RD);
