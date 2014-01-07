@@ -7,8 +7,8 @@
 #include "lcd.h"
 
 // Defines etc:
-#define POLYPHONY			10
-#define AUDIO_BUF_SIZE		32
+#define POLYPHONY			6
+#define AUDIO_BUF_SIZE		16
 
 // DA converters zero level and max zero-peak amplitude (set for 12bit DAC, 4096 levels)
 #define DAC_ZERO			2047
@@ -106,6 +106,12 @@ void synth_core_setup() {
 	lcd_place_cursor(0,1);	// debug, debug, debug... :) 
 	lcd_write_hex32((uint32_t)&wt_sinewave[0][0]);
 	// lcd_write_hex32(SCB->AIRCR);
+	// reset voice status array...
+	uint32_t N;
+	for ( N=0; N < POLYPHONY ; N++) {
+		voice_status[N].midi_key=0;
+		voice_status[N].voice_state=VOICE_STATE_OFF;
+	}
 }
 
 // debug help display...
@@ -120,25 +126,25 @@ void printkeys(uint8_t x) {
 
 // start playing key
 void key_on(uint8_t key, uint8_t vel) {
-	uint32_t i;
-	for ( i=0 ; i < POLYPHONY ; i++ ) {
-		if ( voice_status[i].midi_key == key || voice_status[i].voice_state == VOICE_STATE_OFF ) {
-			osc[i].origin_key=((uint32_t)key*256);	// original pitch
-			osc[i].phase_cur_ptr1=0;
-			osc[i].phase_step1=key_to_phasestep(osc[i].origin_key);
-			osc[i].phase_cur_ptr2=0;
-			osc[i].phase_step2=key_to_phasestep(osc[i].origin_key+30); // detune for testing
-			osc[i].waveform1=vel >> 4;
-			osc[i].waveform2=vel >> 4;
+	uint32_t N;
+	for ( N=0 ; N < POLYPHONY ; N++ ) {
+		if ( voice_status[N].midi_key == key || voice_status[N].voice_state == VOICE_STATE_OFF ) {
+			osc[N].origin_key=((uint32_t)key*256);	// original pitch
+			osc[N].phase_cur_ptr1=0;
+			osc[N].phase_step1=key_to_phasestep(osc[N].origin_key);
+			osc[N].phase_cur_ptr2=0;
+			osc[N].phase_step2=key_to_phasestep(osc[N].origin_key+30); // detune for testing
+			osc[N].waveform1=vel >> 4;
+			osc[N].waveform2=vel >> 4;
 			// playingkeys[i]=key;	// voice allocator 
-			osc_ctrl[i].velocity=vel;		// original velocity
-			osc_ctrl[i].volume=100;			// set volume = play
-			voice_status[i].midi_key=key;
-			voice_status[i].voice_state=VOICE_STATE_PLAYING;
+			osc_ctrl[N].velocity=vel;		// original velocity
+			osc_ctrl[N].volume=100;			// set volume = play
+			voice_status[N].midi_key=key;
+			voice_status[N].voice_state=VOICE_STATE_PLAYING;
 			// lcd_place_cursor(0,1);
 			// lcd_write_char(0x01);
 			// lcd_write_hex32(osc[i].phase_step1);
-			printkeys(i);
+			printkeys(N);
 			break;
 		}
 	}
@@ -146,21 +152,21 @@ void key_on(uint8_t key, uint8_t vel) {
 
 // stop playing key
 void key_off(uint8_t key, uint8_t vel) {
-	uint32_t i;
-	for ( i=0 ; i < POLYPHONY ; i++ ) {
-		if ( voice_status[i].midi_key == key ) {
-			osc_ctrl[i].velocity=vel;
-			osc_ctrl[i].volume=0;
+	uint32_t N;
+	for ( N=0 ; N < POLYPHONY ; N++ ) {
+		if ( voice_status[N].midi_key == key ) {
+			osc_ctrl[N].velocity=vel;
+			osc_ctrl[N].volume=0;
 			// playingkeys[i]=0;
-			voice_status[i].voice_state=VOICE_STATE_OFF;
-			voice_status[i].midi_key=0
-			printkeys(i);
+			voice_status[N].voice_state=VOICE_STATE_OFF;
+			voice_status[N].midi_key=0;
+			printkeys(N);
 		}
 	}
 }
 
 // main audio rendering function
-void render_audio() {
+inline void render_audio() {
 	uint32_t N=0;				// currently working on oscillator N
 	uint32_t audiomixout=DAC_ZERO;	// where is the audio mix actual output zero level
 	int32_t audiomix=0;			// temp mix of oscillators
@@ -169,8 +175,9 @@ void render_audio() {
 	uint32_t wt_ptr1;			// temporary wave table pointers
 	uint32_t wt_ptr2;			// temporary wave table pointers
 	
-	cpu_load_led_on(); 
+	// cpu_load_led_on();
 	while(rb_is_writeable(&audiobuf_str)) {	// do work while there is space in the audio buffer
+		cpu_load_led_on();
 		audiomix=0;
 		for ( N=0 ; N < POLYPHONY ; N++ ) {	// loop thru oscillators
 			if ( voice_status[N].voice_state != VOICE_STATE_OFF ) {	// OK, actally do something ...
