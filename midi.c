@@ -18,6 +18,7 @@
 #define MIDI_WAIT_FOR_BYTE1             3
 #define MIDI_WAIT_FOR_BYTE2             4
 #define MIDI_STATUS_CTRL				5
+#define MIDI_STATUS_PITCH_WHEEL			6
 #define MIDI_STATUS_UNIMPLEMENTED       255
 
 // MIDI command codes (channel info stripped; bits 4-7 only)
@@ -34,7 +35,8 @@
 #define MIDI_GOT_KEYOFF                 51
 #define MIDI_GOT_OTHER                  52
 #define MIDI_GOT_CTRL					53
-#define MIDI_INCOMPLETE                 54
+#define MIDI_GOT_PITCH_WHEEL			54
+#define MIDI_INCOMPLETE                 55
 
 
 // size of midi recieve buffer
@@ -68,15 +70,15 @@ inline void midi_buffer_byte(uint8_t byte) {
 }
 
 // MIDI data input processor
-void midi_process_buffer(void) {
+inline void midi_process_buffer(void) {
 		
 	// MIDI global state keeper:
 	static uint8_t midi_main_state;
 	static uint8_t midi_sub_state;
 	uint8_t key_state = MIDI_GOT_OTHER;
 
-	static uint8_t key_no;
-	static uint8_t key_vel;
+	static uint8_t byte1;
+	static uint8_t byte2;
 	// static uint8_t channel;
 //	uint8_t i;
 	uint8_t last_in;
@@ -112,6 +114,10 @@ void midi_process_buffer(void) {
 					key_state = MIDI_INCOMPLETE;
 					break;
 				case MIDI_PITCH_WHEEL :	// MIDI pitch wheel
+					midi_main_state = MIDI_STATUS_PITCH_WHEEL;
+					midi_sub_state = MIDI_WAIT_FOR_BYTE1;
+					key_state = MIDI_INCOMPLETE;
+					break;			
 				case MIDI_AFTERTOUCH :	// MIDI aftertouch
 				case MIDI_CTRL_MSG :	// MIDI controller
 					midi_main_state = MIDI_STATUS_CTRL;
@@ -139,12 +145,12 @@ void midi_process_buffer(void) {
 		{
 			switch ( midi_sub_state ) {
 				case MIDI_WAIT_FOR_BYTE1 :
-					key_no = last_in ;
+					byte1 = last_in ;
 					midi_sub_state = MIDI_WAIT_FOR_BYTE2 ;
 					key_state = MIDI_INCOMPLETE ;
 					break;
 				case MIDI_WAIT_FOR_BYTE2 :
-					key_vel = last_in ;
+					byte2 = last_in ;
 					midi_sub_state = MIDI_WAIT_FOR_BYTE1 ;
 					// OK, here we should have a complete note on/off command
 					if ( midi_main_state == MIDI_STATUS_KEYON ) { // key on
@@ -153,12 +159,15 @@ void midi_process_buffer(void) {
 					if ( midi_main_state == MIDI_STATUS_KEYOFF ) { // key off
 						key_state = MIDI_GOT_KEYOFF ;
 					}
-					if ( midi_main_state == MIDI_STATUS_KEYON && key_vel == 0 ) {
+					if ( midi_main_state == MIDI_STATUS_KEYON && byte2 == 0 ) {
 						// key on with velocity=0 is really a key off
 						key_state = MIDI_GOT_KEYOFF ;
 					}
 					if ( midi_main_state == MIDI_STATUS_CTRL ) { // ctrl msg
 						key_state = MIDI_GOT_CTRL ;
+					}
+					if ( midi_main_state == MIDI_STATUS_PITCH_WHEEL ) { // pitch wheel msg
+						key_state = MIDI_GOT_PITCH_WHEEL ;
 					}
 					break;
 
@@ -167,45 +176,33 @@ void midi_process_buffer(void) {
 
 		switch ( key_state ) {
 			case MIDI_GOT_KEYON :
-				// midi_state = MIDI_WAIT_NEW_EVENT;
-				// key_start_play(key_no,key_vel);
-			
-				// lcd_place_cursor(0,1);
-				// lcd_write_char(0x01);
-				// lcd_write_hex8(channel);
-				// lcd_write_hex8(key_no);
-				// lcd_write_hex8(key_vel);
-				// lcd_write_hex32(key_to_phasestep(key_no*256));
 				
-				key_on(key_no, key_vel);
+				key_on(byte1, byte2);
 
-				key_no = 0;
-				key_vel = 0;
+				byte1 = 0;
+				byte2 = 0;
 
 				break;
 
 			case MIDI_GOT_KEYOFF :
 
-				// lcd_place_cursor(0,2);
+				key_off(byte1, byte2);
 
-				// lcd_write_char(0x02);
-				// lcd_write_hex8(channel);
-				// lcd_write_hex8(key_no);
-				// lcd_write_hex8(key_vel);
-				key_off(key_no, key_vel);
-
-				key_no = 0;
-				key_vel = 0;
+				byte1 = 0;
+				byte2 = 0;
 
 				break;
 			case MIDI_GOT_CTRL :
 				// lcd_place_cursor(0,3);
 
-
-				TIM4->CCR1 = key_vel*2 ;
-				TIM4->CCR2 = 255-key_vel*2 ;
+				TIM4->CCR1 = byte2*2 ;		// just testin'
+				TIM4->CCR2 = 255-byte2*2 ;
 				
-				// midi_set_ctrl(key_no,key_vel);	// not really key_no etc, but you get the idea... :)
+				// midi_set_ctrl(byte1,byte2);	// not really byte1 etc, but you get the idea... :)
+				break;
+			case MIDI_GOT_PITCH_WHEEL :
+				byte1 = 0;
+				byte2 = 0;
 				break;
 		}
 		key_state = MIDI_GOT_OTHER;
