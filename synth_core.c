@@ -26,6 +26,12 @@ struct osc_set_str {
 	uint32_t waveform2;			// osc2 waveform table index
 	uint32_t phase_cur_ptr2;	// current position for phase acc 2
 	uint32_t phase_step2;		// phase step length for acc 2(including modulations) 
+	uint32_t waveform3;			// osc2 waveform table index
+	uint32_t phase_cur_ptr3;	// current position for phase acc 2
+	uint32_t phase_step3;		// phase step length for acc 2(including modulations)
+	uint32_t waveform4;			// osc2 waveform table index
+	uint32_t phase_cur_ptr4;	// current position for phase acc 2
+	uint32_t phase_step4;		// phase step length for acc 2(including modulations)
 };
 struct osc_set_str osc[POLYPHONY];	// osc[0-N] oscillator parameters
 
@@ -42,6 +48,10 @@ struct patch_str {
 	uint32_t osc2_transpose;	//osc2 transpose +/- keys
 	uint32_t osc2_detune;		//osc2 detune
 	uint32_t osc2_phase;		//osc2 start phase relative osc1
+	uint32_t osc3_detune;		//osc3 detune
+	uint32_t osc3_phase;		//osc3 start phase relative osc1
+	uint32_t osc4_detune;		//osc4 detune
+	uint32_t osc4_phase;		//osc4 start phase relative osc1
 };
 struct patch_str patch;
 
@@ -103,8 +113,8 @@ uint32_t key_to_phasestep(uint16_t key_fract) {
 void synth_core_setup() {
 	// initialize audio output buffer
 	rb_buffer_init(&audiobuf_str, AUDIO_BUF_SIZE);
-	lcd_place_cursor(0,1);	// debug, debug, debug... :) 
-	lcd_write_hex32((uint32_t)&wt_sinewave[0][0]);
+	// lcd_place_cursor(0,1);	// debug, debug, debug... :) 
+	// lcd_write_hex32((uint32_t)&wt_sinewave[0][0]);
 	// lcd_write_hex32(SCB->AIRCR);
 	// reset voice status array...
 	uint32_t N;
@@ -133,9 +143,15 @@ void key_on(uint8_t key, uint8_t vel) {
 			osc[N].phase_cur_ptr1=0;
 			osc[N].phase_step1=key_to_phasestep(osc[N].origin_key);
 			osc[N].phase_cur_ptr2=0;
-			osc[N].phase_step2=key_to_phasestep(osc[N].origin_key+30); // detune for testing
+			osc[N].phase_step2=key_to_phasestep(osc[N].origin_key+7); // detune for testing
+			osc[N].phase_cur_ptr3=0;
+			osc[N].phase_step3=key_to_phasestep(osc[N].origin_key+15); // detune for testing
+			osc[N].phase_cur_ptr4=0;
+			osc[N].phase_step4=key_to_phasestep(osc[N].origin_key+22); // detune for testing
 			osc[N].waveform1=vel >> 4;
 			osc[N].waveform2=vel >> 4;
+			osc[N].waveform3=vel >> 4;
+			osc[N].waveform4=vel >> 4;
 			// playingkeys[i]=key;	// voice allocator 
 			osc_ctrl[N].velocity=vel;		// original velocity
 			osc_ctrl[N].volume=100;			// set volume = play
@@ -170,11 +186,9 @@ inline void render_audio() {
 	uint32_t N=0;				// currently working on oscillator N
 	uint32_t audiomixout=DAC_ZERO;	// where is the audio mix actual output zero level
 	int32_t audiomix=0;			// temp mix of oscillators
-	// uint8_t maxframes=20;		// max audio frames to do in one go
-	
-	uint32_t wt_ptr1;			// temporary wave table pointers
-	uint32_t wt_ptr2;			// temporary wave table pointers
-	
+
+	uint32_t wt_ptr;			// temporary wave table pointer
+		
 	// cpu_load_led_on();
 	while(rb_is_writeable(&audiobuf_str)) {	// do work while there is space in the audio buffer
 		cpu_load_led_on();
@@ -183,15 +197,23 @@ inline void render_audio() {
 			if ( voice_status[N].voice_state != VOICE_STATE_OFF ) {	// OK, actally do something ...
 				
 				// get 10 MS Bits for use as wave table pointer
-				wt_ptr1=(osc[N].phase_cur_ptr1 >> 22);	
-				audiomix+=wt_sinewave[osc[N].waveform1][wt_ptr1];
+				wt_ptr=(osc[N].phase_cur_ptr1 >> 22);	
+				audiomix+=wt_sinewave[osc[N].waveform1][wt_ptr];
 				
-				wt_ptr2=(osc[N].phase_cur_ptr2 >> 22);	
-				audiomix+=wt_sinewave[osc[N].waveform2][wt_ptr2];
+				wt_ptr=(osc[N].phase_cur_ptr2 >> 22);	
+				audiomix+=wt_sinewave[osc[N].waveform2][wt_ptr];
+				
+				wt_ptr=(osc[N].phase_cur_ptr3 >> 22);	
+				audiomix+=wt_sinewave[osc[N].waveform3][wt_ptr];
+
+				wt_ptr=(osc[N].phase_cur_ptr4 >> 22);	
+				audiomix+=wt_sinewave[osc[N].waveform4][wt_ptr];
 				
 				// advance phase ptrs for next time
 				osc[N].phase_cur_ptr1 += osc[N].phase_step1;
-				osc[N].phase_cur_ptr2 += osc[N].phase_step2;
+				osc[N].phase_cur_ptr2 += (osc[N].phase_step2-wt_sinewave[osc[N].waveform1][wt_ptr]);
+				osc[N].phase_cur_ptr3 += osc[N].phase_step3;
+				osc[N].phase_cur_ptr4 += (osc[N].phase_step4-wt_sinewave[osc[N].waveform3][wt_ptr]);
 				
 			}
 		}

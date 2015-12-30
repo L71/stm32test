@@ -18,6 +18,6 @@ void key_off(uint8_t, uint8_t);
 void render_audio(void);
 
 // read a word from the audio buffer
-int16_t read_audio_buffer(void);
+uint32_t read_audio_buffer(void);
 	
 #endif

@@ -9,7 +9,7 @@
 
 // global defines & declarations
 
-#define LCD_BUF_SIZE 128	// LCD character/command buffer (only buffers half bytes!)
+#define LCD_BUF_SIZE 256	// LCD character/command buffer (only buffers half bytes!)
 
 // control struct for LCD buffer
 struct ringbuf lcd_buf_str;

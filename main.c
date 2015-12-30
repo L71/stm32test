@@ -40,7 +40,7 @@ void TIM4_IRQHandler()
 	}
 	
 	// read audio buffer & copy to DAC CH A.
-	spi1_dac_write_cha(read_audio_buffer());
+	spi1_dac_write_cha((uint16_t)read_audio_buffer());
 	
 	// kill ISR execution indicator
 	cpu_load_led_off();
@@ -87,8 +87,8 @@ int main(void) {
 	setup_hf_timer();
 	enable_hf_timer();
 	// initialize & start env/lfo/ui etc (lf) timer
-	setup_lf_timer();
-	enable_lf_timer();
+	// setup_lf_timer();
+	// enable_lf_timer();
 	
 	// setup MIDI buffers and start USART for MIDI communication
 	midi_setup_buffers();
